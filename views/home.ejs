@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantom Wallet Integration</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/solana-web3.js/1.30.1/solana-web3.min.js"></script>
+    <script defer src="/wallet.js"></script> <!-- External JS script for wallet -->
+</head>
+<body>
+    <h1>Welcome to Farmer's Kit</h1>
+
+    <!-- Button to connect Phantom Wallet -->
+    
+    <button id="connect-wallet">Connect Phantom Wallet</button>
+    <button id="disconnect-wallet">Disconnect Phantom Wallet</button>
+    <p id="wallet-publickey">Wallet Public Key: </p>
+    <p id="wallet-balance">Wallet Balance: </p>
+    <script src="wallet.js"></script>
+
+    <!-- Show the wallet public key and balance after connection -->
+    <div id="wallet-info">
+        <p id="wallet-publickey"></p>
+        <p id="wallet-balance"></p>
+    </div>
+
+    <script>
+        const provider = window.solana;
+        const connectButton = document.getElementById("connect-wallet");
+        const disconnectButton = document.getElementById("disconnect-wallet");
+        const walletInfoDiv = document.getElementById("wallet-info");
+
+        const connectWallet = async () => {
+            try {
+                if (provider && provider.isPhantom) {
+                    const response = await provider.connect();
+                    const publicKey = response.publicKey.toString();
+                    document.getElementById('wallet-publickey').textContent = "Wallet Public Key: " + publicKey;
+                    console.log("Connected to wallet: ", publicKey);
+                    
+                    // Fetch and display the wallet balance
+                    const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
+                    const balance = await connection.getBalance(new solanaWeb3.PublicKey(publicKey));
+                    document.getElementById('wallet-balance').textContent = "Balance: " + (balance / solanaWeb3.LAMPORTS_PER_SOL) + " SOL";
+
+                    connectButton.style.display = "none";
+                    disconnectButton.style.display = "block";
+                } else {
+                    alert("Phantom Wallet not found! Please install it.");
+                }
+            } catch (err) {
+                console.error("Error connecting to Phantom Wallet", err);
+            }
+        };
+
+        const disconnectWallet = () => {
+            provider.disconnect();
+            document.getElementById('wallet-publickey').textContent = "Wallet disconnected";
+            document.getElementById('wallet-balance').textContent = "";
+            connectButton.style.display = "block";
+            disconnectButton.style.display = "none";
+        };
+
+        // Add event listener to the buttons
+        connectButton.addEventListener("click", connectWallet);
+        disconnectButton.addEventListener("click", disconnectWallet);
+    </script>
+</body>
+</html>
